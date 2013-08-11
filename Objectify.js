@@ -8,6 +8,146 @@
 
 var Objectify = (function(Kinetic) {
 
+    Objectify.Util = {
+        extend: function(c1, c2) {
+            for (var sup in c2) {
+                for(var key in sup.prototype) {
+                    if(!( key in c1.prototype)) {
+                        c1.prototype[key] = sup.prototype[key];
+                    }
+                }
+            }
+            return c1;
+        }
+    }
+
+    /**
+     * Dimensions
+     *
+     * @type {{width: number, height: number}}
+     */
+    Objectify.UI.Dimensions = {
+        width : 0,
+        height : 0
+    };
+
+    /**
+     * Spacing
+     *
+     * @type {{top: number, bottom: number, left: number, right: number}}
+     */
+    Objectify.UI.Spacing = {
+        top : 0,
+        bottom : 0,
+        left : 0,
+        right : 0
+    };
+
+    /**
+     * Widget
+     *
+     * @param config
+     * @constructor
+     */
+    Objectify.UI.Widget = function(config) {
+        this.__init(config);
+    };
+    Objectify.UI.Widget.prototype = {
+        __init : function(config) {
+            this.dimensions = config.dimensions || new Dimensions();
+            this.margins = config.margins || new Spacing();
+            this.padding = config.padding || new Spacing();
+        },
+
+        setDimensions : function setDimensions(dimensions) { this.dimensions = dimensions; },
+        getDimensions : function getDimensions() { return this.dimensions; },
+
+        setMargins : function setMargins(margins) { this.margins = margins; },
+        getMargins : function getMargins() { return this.margins; },
+
+        setPadding : function setPadding(padding) { this.padding = padding; },
+        getPadding : function getPadding() { return this.padding; }
+    }
+
+    /**
+     * ObjectWidget
+     *
+     * @param config
+     * @constructor
+     */
+    Objectify.UI.ObjectWidget = function(config) {
+        this.__init(config);
+    };
+    Objectify.UI.ObjectWidget.prototype = {
+        __init : function(config) {
+            Objectify.UI.Widget.call(this, config);
+        }
+    };
+    Objectify.Util.extend(Objectify.UI.ObjectWidget, Objectify.UI.Widget);
+
+    /**
+     * RelationshipWidget
+     *
+     * @param config
+     * @constructor
+     */
+    Objectify.UI.RelationshipWidget = function(config) {
+        this.__init(config);
+    };
+    Objectify.UI.RelationshipWidget.prototype = {
+        __init : function(config) {
+            Objectify.UI.Widget.call(this, config);
+        }
+    };
+    Objectify.Util.extend(Objectify.UI.RelationshipWidget, Objectify.UI.Widget);
+
+    /**
+     * Entity
+     *
+     * @param config
+     * @constructor
+     */
+    Objectify.Entity = function(config) {
+        this.__init(config);
+    }
+    Objectify.Entity.prototype = {
+        __init : function(config) {
+
+        }
+    }
+
+    /**
+     * Relationship
+     *
+     * @param config
+     * @constructor
+     */
+    Objectify.Relationship = function(config) {
+        this.__init(config);
+    };
+    Objectify.Relationship.prototype = {
+        __init : function(config) {
+            Objectify.Entity.call(this, config);
+        }
+    }
+    Objectify.Util.extend(Objectify.Relationship, Objectify.Entity);
+
+    /**
+     * Object
+     *
+     * @param config
+     * @constructor
+     */
+    Objectify.Object = function(config) {
+        this.__init(config);
+    };
+    Objectify.Object.prototype = {
+        __init : function(config) {
+            Objectify.Entity.call(this, config);
+        }
+    }
+    Objectify.Util.extend(Objectify.Object, Objectify.Entity);
+
 
 
 } (Kinetic));

@@ -19,7 +19,7 @@ var Objectify = (function(Kinetic) {
             }
             return c1;
         }
-    }
+    };
 
     /**
      * Dimensions
@@ -54,9 +54,9 @@ var Objectify = (function(Kinetic) {
     };
     Objectify.UI.Widget.prototype = {
         __init : function(config) {
-            this.dimensions = config.dimensions || new Dimensions();
-            this.margins = config.margins || new Spacing();
-            this.padding = config.padding || new Spacing();
+            this.dimensions = config.dimensions || new Objectify.UI.Dimensions();
+            this.margins = config.margins || new Objectify.UI.Spacing();
+            this.padding = config.padding || new Objectify.UI.Spacing();
         },
 
         setDimensions : function setDimensions(dimensions) { this.dimensions = dimensions; },
@@ -67,7 +67,7 @@ var Objectify = (function(Kinetic) {
 
         setPadding : function setPadding(padding) { this.padding = padding; },
         getPadding : function getPadding() { return this.padding; }
-    }
+    };
 
     /**
      * ObjectWidget
@@ -109,12 +109,12 @@ var Objectify = (function(Kinetic) {
      */
     Objectify.Entity = function(config) {
         this.__init(config);
-    }
+    };
     Objectify.Entity.prototype = {
         __init : function(config) {
 
         }
-    }
+    };
 
     /**
      * Relationship
@@ -129,7 +129,7 @@ var Objectify = (function(Kinetic) {
         __init : function(config) {
             Objectify.Entity.call(this, config);
         }
-    }
+    };
     Objectify.Util.extend(Objectify.Relationship, Objectify.Entity);
 
     /**
@@ -145,7 +145,7 @@ var Objectify = (function(Kinetic) {
         __init : function(config) {
             Objectify.Entity.call(this, config);
         }
-    }
+    };
     Objectify.Util.extend(Objectify.Object, Objectify.Entity);
 
 

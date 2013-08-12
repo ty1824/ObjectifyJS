@@ -22,8 +22,20 @@ var Objectify = (function(Kinetic) {
     };
 
     /**
+     * Point
+     *
+     * @class
+     * @type {{x: number, y: number}}
+     */
+    Objectify.UI.Point = {
+        x : 0,
+        y : 0
+    };
+
+    /**
      * Dimensions
      *
+     * @class
      * @type {{width: number, height: number}}
      */
     Objectify.UI.Dimensions = {
@@ -34,6 +46,7 @@ var Objectify = (function(Kinetic) {
     /**
      * Spacing
      *
+     * @class
      * @type {{top: number, bottom: number, left: number, right: number}}
      */
     Objectify.UI.Spacing = {
@@ -54,9 +67,12 @@ var Objectify = (function(Kinetic) {
     };
     Objectify.UI.Widget.prototype = {
         __init : function(config) {
+            this.position = config.position || new Objectify.UI.Point();
             this.dimensions = config.dimensions || new Objectify.UI.Dimensions();
             this.margins = config.margins || new Objectify.UI.Spacing();
             this.padding = config.padding || new Objectify.UI.Spacing();
+            this.visible = config.visible || true;
+            this.children = [];
         },
 
         setDimensions : function setDimensions(dimensions) { this.dimensions = dimensions; },
@@ -66,7 +82,18 @@ var Objectify = (function(Kinetic) {
         getMargins : function getMargins() { return this.margins; },
 
         setPadding : function setPadding(padding) { this.padding = padding; },
-        getPadding : function getPadding() { return this.padding; }
+        getPadding : function getPadding() { return this.padding; },
+
+        setVisible : function(visible) { this.visible = visible },
+        isVisible : function() { return this.visible; },
+
+        addChild : function addChild(child) { children.push(child);},
+
+
+
+        draw : function draw() {
+
+        }
     };
 
     /**

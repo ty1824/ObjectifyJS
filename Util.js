@@ -25,15 +25,24 @@ Objectify.Util = (function() {
 
     /**
      * Creates a new object with the given parent object, constructor, and definition.
+     *
      * @param {Object} parameters
      * @param {Object} config.extend
-     * @param {Function} config.ctor
+     * @param {Function} config.constructor
      * @param {Object} config.definition
      * @returns {Object} The new class
      */
     var defclass = function (parameters) {
-        parameters.ctor.prototype = Object.create(parameters.extend.prototype)
-        return define(parameters.ctor, parameters.definition);
+        var ret = function(config) {
+            if (parameters.extend) {
+                parameters.extend.call(this, config); // SUPER call
+            }
+            this.__init(config); // Constructor call
+        };
+        ret.prototype = Object.create(parameters.extend.prototype || Object.prototype, parameters.definition);
+        ret.prototype.__init = parameters.constructor;
+
+        return ret;
     };
 
 

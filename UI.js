@@ -5,6 +5,7 @@
  * Time: 12:52 AM
  * To change this template use File | Settings | File Templates.
  */
+"use strict";
 
 Objectify.UI = (function(Util) {
     /**
@@ -14,8 +15,8 @@ Objectify.UI = (function(Util) {
      * @type {{x: number, y: number}}
      */
     var Point = {
-            x : 0,
-            y : 0
+        x : 0,
+        y : 0
     };
 
     /**
@@ -36,10 +37,10 @@ Objectify.UI = (function(Util) {
      * @type {{top: number, bottom: number, left: number, right: number}}
      */
     var Spacing = {
-            top : 0,
-            bottom : 0,
-            left : 0,
-            right : 0
+        top : 0,
+        bottom : 0,
+        left : 0,
+        right : 0
     };
 
     /**
@@ -49,19 +50,21 @@ Objectify.UI = (function(Util) {
      * @param config
      * @constructor
      */
-    var Widget = Util.class(Object,
-        function Widget() {
-            this.position = config.position || new Objectify.UI.Point();
-            this.dimensions = config.dimensions || new Objectify.UI.Dimensions();
-            this.margins = config.margins || new Objectify.UI.Spacing();
-            this.padding = config.padding || new Objectify.UI.Spacing();
+    var Widget = Util.class( { extends : Object,
+        constructor : (function Widget(config) {
+            this.position = config.position || new Point();
+            this.dimensions = config.dimensions || new Dimensions();
+            this.margins = config.margins || new Spacing();
+            this.padding = config.padding || new Spacing();
+            this.background = config.background || null;
             this.visible = config.visible || true;
             this.group = new Kinetic.Group(null);
             this.children = [];
             this.drawSet = [];
             this.requiresLayout = true;
-        },
-        {
+        }),
+        definition : {
+
             setDimensions : function setDimensions(dimensions) { this.dimensions = dimensions; },
             getDimensions : function getDimensions() { return this.dimensions; },
 
@@ -112,21 +115,26 @@ Objectify.UI = (function(Util) {
                 }
             }
         }
-    );
+    });
 
     /**
      *
      * @param config
      * @constructor
      */
-    var TextWidget = function(config) {
-        this.__init(config);
-    };
-    Objectify.UI.TextWidget.prototype = {
-        __init : function(config) {
+    var TextWidget = Util.class( { extends : Widget,
+        constructor : function(config) {
+            this.text = config.text;
+        },
+        definition : {
+            setText : function(text) { this.text = text; },
+            getText : function() { return this.text; },
 
+            doLayout : function() {
+
+            }
         }
-    };
+    });
 
     /**
      * ObjectWidget
@@ -164,7 +172,8 @@ Objectify.UI = (function(Util) {
         Point : Point,
         Dimensions : Dimensions,
         Spacing : Spacing,
-        Widget : Widget
+        Widget : Widget,
+        TextWidget : TextWidget
     }
 
 

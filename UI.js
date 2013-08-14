@@ -65,16 +65,19 @@ Objectify.UI = (function(Util) {
         }),
         definition : {
 
-            setDimensions : function setDimensions(dimensions) { this.dimensions = dimensions; },
+            setDimensions : function setDimensions(dimensions) { this.dimensions = dimensions; this.requireLayout(); },
             getDimensions : function getDimensions() { return this.dimensions; },
 
-            setMargins : function setMargins(margins) { this.margins = margins; },
+            setMargins : function setMargins(margins) { this.margins = margins; this.requireLayout(); },
             getMargins : function getMargins() { return this.margins; },
 
-            setPadding : function setPadding(padding) { this.padding = padding; },
+            setPadding : function setPadding(padding) { this.padding = padding; this.requireLayout(); },
             getPadding : function getPadding() { return this.padding; },
 
-            setVisible : function(visible) { this.visible = visible },
+            setBackground : function(background) { this.background = background; this.requireLayout(); },
+            getBackground : function() { return this.background; },
+
+            setVisible : function(visible) { this.visible = visible; this.requireLayout(); },
             /**
              * Checks if this widget is currently visible
              *
@@ -87,27 +90,33 @@ Objectify.UI = (function(Util) {
              * Adds a child to this widget.
              *
              * @public
-             * @param {Objectify.UI.Widget} child
+             * @param {Widget} child
              */
             addChild : function addChild(child) {
-                this.children.push(child);
-                this.group.add(child.group);
+                if (this.children.indexOf(child) < 0) {
+                    this.children.push(child);
+                    this.group.add(child.group);
+                    this.requiresLayout = true;
+                }
             },
             /**
              * Removes the specified child from this widget.
              *
              * @public
-             * @param {Objectify.UI.Widget} child
+             * @param {Widget} child
              */
             removeChild : function removeChild(child) {
                 var index = this.children.indexOf(child);
                 if (index >= 0) {
                     this.children.splice(index, 1);
                     child.group.remove();
+                    this.requiresLayout = true;
                 }
             },
 
-            doLayout : function doLayout() {},
+            requireLayout : function() { this.requiresLayout = true; },
+
+            doLayout : function doLayout() { },
 
             draw : function draw() {
                 if (this.requiresLayout) {
@@ -118,6 +127,7 @@ Objectify.UI = (function(Util) {
     });
 
     /**
+     * TextWidget
      *
      * @param config
      * @constructor
@@ -125,13 +135,19 @@ Objectify.UI = (function(Util) {
     var TextWidget = Util.class( { extends : Widget,
         constructor : function(config) {
             this.text = config.text;
+            this.textView = null;
         },
         definition : {
-            setText : function(text) { this.text = text; },
+            setText : function(text) { this.text = text; this.requireLayout(); },
             getText : function() { return this.text; },
 
             doLayout : function() {
+                Widget.doLayout.call(this); // Super call
 
+                this.textView = new Kinetic.Text( {
+                    text : this.text
+                });
+                this.group.addChild(this.textView);
             }
         }
     });

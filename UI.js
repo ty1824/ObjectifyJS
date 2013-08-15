@@ -44,6 +44,53 @@ Objectify.UI = (function(Util) {
     };
 
     /**
+     * Bounds
+     *
+     * @public
+     * @param config
+     * @constructor
+     */
+    var Bounds = Util.class( { extends : Object,
+        constructor : function Bounds(config) {
+            if (config.bounds) {
+                this.left = config.bounds.left;
+                this.top = config.bounds.top;
+                this.right = config.bounds.right;
+                this.bottom = config.bounds.bottom;
+            } else if (config.location && config.dimensions) {
+                this.left = config.location.x;
+                this.top = config.location.y;
+                this.right = this.left + config.dimensions.width;
+                this.bottom = this.top + config.dimensions.height;
+            } else {
+                this.left = config.left;
+                this.top = config.top;
+                this.right = config.right;
+                this.bottom = config.bottom;
+            }
+        },
+        definition : {
+            x : function() { return this.left; },
+            y : function() { return this.top; },
+            width : function() { return this.right - this.left; },
+            height : function() { return this.bottom - this.top; },
+            getLeft : function() { return this.left; },
+            getTop : function() { return this.top; },
+            getRight : function() { return this.right; },
+            getBottom : function() { return this.bottom;},
+
+            applySpacing : function(spacing) {
+                var ret = new Bounds(this);
+                ret.top += spacing.top;
+                ret.left += spacing.left;
+                ret.bottom -= spacing.bottom;
+                ret.right -= spacing.right;
+                return ret;
+            }
+        }
+    });
+
+    /**
      * Widget
      *
      * @public
@@ -64,6 +111,9 @@ Objectify.UI = (function(Util) {
             this.requiresLayout = true;
         }),
         definition : {
+
+            setPosition : function setPosition(position) { this.position = position; this.requireLayout(); },
+            getPosition : function getPosition() { return this.position; },
 
             setDimensions : function setDimensions(dimensions) { this.dimensions = dimensions; this.requireLayout(); },
             getDimensions : function getDimensions() { return this.dimensions; },
@@ -116,13 +166,38 @@ Objectify.UI = (function(Util) {
 
             requireLayout : function() { this.requiresLayout = true; },
 
-            doLayout : function doLayout() { },
+            doLayout : function doLayout() {
+                this.bounds = new Bounds({
+                    location : this.location,
+                    dimensions : this.dimensions
+                });
+                this.marginBounds = this.bounds.applySpacing(this.margins);
+                this.paddingBounds = this.marginBounds.applySpacing(this.padding);
+            },
 
             draw : function draw() {
                 if (this.requiresLayout) {
                     this.doLayout();
                 }
             }
+        }
+    });
+
+    var Window = Util.class( { extends : Object,
+        constructor : function(config) {
+
+        },
+        definition : {
+
+        }
+    });
+
+    var Layout = Util.class( { extends : Widget,
+        constructor : function(config) {
+
+        },
+        definition : {
+
         }
     });
 
@@ -142,47 +217,26 @@ Objectify.UI = (function(Util) {
             getText : function() { return this.text; },
 
             doLayout : function() {
-                Widget.doLayout.call(this); // Super call
+                Widget.doLayout.call(this); // Super call (calculates bounds)
 
-                this.textView = new Kinetic.Text( {
-                    text : this.text
-                });
-                this.group.addChild(this.textView);
+                var textViewAttrs = {
+                    text : this.text,
+                    x : this.paddingBounds.x(),
+                    y : this.paddingBounds.y(),
+                    width : this.paddingBounds.width(),
+                    height : this.paddingBounds.height()
+                };
+
+                if (this.textView) {
+                    this.textView.setAttrs(textViewAttrs);
+                } else {
+                    this.textView = new Kinetic.Text(textViewAttrs);
+                    this.group.addChild(this.textView);
+                }
+
             }
         }
     });
-
-    /**
-     * ObjectWidget
-     *
-     * @param config
-     * @constructor
-     */
-    Objectify.UI.ObjectWidget = function(config) {
-        this.__init(config);
-    };
-    Objectify.UI.ObjectWidget.prototype = {
-        __init : function(config) {
-            Objectify.UI.Widget.call(this, config);
-        }
-    };
-    Objectify.Util.extend(Objectify.UI.ObjectWidget, Objectify.UI.Widget);
-
-    /**
-     * RelationshipWidget
-     *
-     * @param config
-     * @constructor
-     */
-    Objectify.UI.RelationshipWidget = function(config) {
-        this.__init(config);
-    };
-    Objectify.UI.RelationshipWidget.prototype = {
-        __init : function(config) {
-            Objectify.UI.Widget.call(this, config);
-        }
-    };
-    Objectify.Util.extend(Objectify.UI.RelationshipWidget, Objectify.UI.Widget);
 
     return {
         Point : Point,

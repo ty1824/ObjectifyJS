@@ -12,35 +12,32 @@ Objectify.UI = (function(Util) {
      * Point
      *
      * @class
-     * @type {{x: number, y: number}}
      */
-    var Point = {
-        x : 0,
-        y : 0
+    var Point = function Point() {
+        this.x = 0;
+        this.y = 0;
     };
 
     /**
      * Dimensions
      *
      * @class
-     * @type {{width: number, height: number}}
      */
-    var Dimensions = {
-        width : 0,
-        height : 0
+    var Dimensions = function Dimensions() {
+        this.width = 0;
+        this.height = 0;
     };
 
     /**
      * Spacing
      *
      * @class
-     * @type {{top: number, bottom: number, left: number, right: number}}
      */
-    var Spacing = {
-        top : 0,
-        bottom : 0,
-        left : 0,
-        right : 0
+    var Spacing = function Spacing() {
+        this.top = 0;
+        this.bottom = 0;
+        this.left = 0;
+        this.right = 0;
     };
 
     /**
@@ -50,26 +47,26 @@ Objectify.UI = (function(Util) {
      * @param config
      * @constructor
      */
-    var Bounds = Util.class( { extends : Object,
-        constructor : function Bounds(config) {
-            if (config.bounds) {
-                this.left = config.bounds.left;
-                this.top = config.bounds.top;
-                this.right = config.bounds.right;
-                this.bottom = config.bounds.bottom;
-            } else if (config.location && config.dimensions) {
-                this.left = config.location.x;
-                this.top = config.location.y;
-                this.right = this.left + config.dimensions.width;
-                this.bottom = this.top + config.dimensions.height;
-            } else {
-                this.left = config.left;
-                this.top = config.top;
-                this.right = config.right;
-                this.bottom = config.bottom;
-            }
-        },
+    var Bounds = Util.class( { class : "Bounds",  extends : Object,
         definition : {
+            __init : function Bounds(config) {
+                if (config.bounds) {
+                    this.left = config.bounds.left;
+                    this.top = config.bounds.top;
+                    this.right = config.bounds.right;
+                    this.bottom = config.bounds.bottom;
+                } else if (config.location && config.dimensions) {
+                    this.left = config.location.x;
+                    this.top = config.location.y;
+                    this.right = this.left + config.dimensions.width;
+                    this.bottom = this.top + config.dimensions.height;
+                } else {
+                    this.left = config.left;
+                    this.top = config.top;
+                    this.right = config.right;
+                    this.bottom = config.bottom;
+                }
+            },
             x : function() { return this.left; },
             y : function() { return this.top; },
             width : function() { return this.right - this.left; },
@@ -90,6 +87,78 @@ Objectify.UI = (function(Util) {
         }
     });
 
+    var Window = Util.class({ extends : Object,
+        definition : function Window(config) {
+            var stage = new Kinetic.Stage({
+                container : config.container,
+                width : 800,
+                height : 600
+            });
+            var layer = new Kinetic.Layer({
+
+            });
+            var view = null;
+            var rate = 10;
+            var requireRedraw = false;
+            var addChild = true;
+            var drawing = false;
+
+            // Debug add stuff to this
+            this.view = function() { return view; };
+            this.drawing = function() { return drawing; };
+
+            stage.add(layer);
+
+            this.setView = function setView(newView) {
+                view = newView;
+                layer.removeChildren();
+                addChild = true;
+            }
+
+            this.setRate = function setRate(newRate) {
+                rate = newRate;
+            }
+
+            this.getRate = function getRate() {
+                return rate;
+            }
+
+            this.redraw = function redraw() {
+                requireRedraw = true;
+            }
+
+            this.start = function start() {
+                if (!drawing) {
+                    drawing = true;
+                    drawWrapper(this, 0);
+                }
+            }
+
+            function drawWrapper(instance, count) {
+//console.log("Counter: " + count++ + ", Rate : " + instance.getRate());
+                instance.draw();
+                if (instance.drawing) {
+                    setTimeout(drawWrapper, instance.getRate(), instance, count);
+                }
+            }
+
+            this.draw = function draw() {
+//console.log("Drawing: " + drawing + ", rate: " + rate);
+                if (requireRedraw && view) {
+                    view.draw();
+                    if (addChild) {
+                        layer.addChild(view.getGroup());
+                    }
+                    stage.draw();
+                }
+            }
+
+            this.stop = function stop() {
+                drawing = false
+            }
+        }
+    });
+
     /**
      * Widget
      *
@@ -98,19 +167,82 @@ Objectify.UI = (function(Util) {
      * @constructor
      */
     var Widget = Util.class( { extends : Object,
-        constructor : (function Widget(config) {
-            this.position = config.position || new Point();
-            this.dimensions = config.dimensions || new Dimensions();
-            this.margins = config.margins || new Spacing();
-            this.padding = config.padding || new Spacing();
-            this.background = config.background || null;
-            this.visible = config.visible || true;
-            this.group = new Kinetic.Group(null);
-            this.children = [];
-            this.drawSet = [];
-            this.requiresLayout = true;
-        }),
+        definition : function Widget(config) {
+            var position = config.position || new Point();
+            var dimensions = config.dimensions || new Dimensions();
+            var margins = config.margins || new Spacing();
+            var padding = config.padding || new Spacing();
+            var background = config.background || null;
+            var visible = config.visible || true;
+
+            this.setPosition = function setPosition(position) { this.position = position; this.requireLayout(); };
+            this.getPosition = function getPosition() { return this.position; };
+
+            this.setDimensions = function setDimensions(dimensions) { this.dimensions = dimensions; this.requireLayout(); };
+            this.getDimensions = function getDimensions() { return this.dimensions; };
+
+            this.setMargins = function setMargins(margins) { this.margins = margins; this.requireLayout(); };
+            this.getMargins = function getMargins() { return this.margins; };
+
+            this.setPadding = function setPadding(padding) { this.padding = padding; this.requireLayout(); };
+            this.getPadding = function getPadding() { return this.padding; };
+
+            this.setBackground = function setBackground(background) { this.background = background; this.requireLayout(); };
+            this.getBackground = function getBackground() { return this.background; };
+
+            this.setVisible = function setVisible(visible) { this.visible = visible; this.requireLayout(); };
+
+            /**
+             * Checks if this widget is currently visible
+             *
+             * @public
+             * @returns {boolean}
+             */
+            this.isVisible = function() { return this.visible; };
+
+            this.getGroup = function() { return this.group; };
+
+            this.requireLayout = function() {
+                this.requiresLayout = this.visible;
+                if (this.requiresLayout) {
+                    this.layout();
+                }
+            };
+
+            this.layout = function layout() {
+                this.doLayout();
+                this.requiresLayout = false;
+            };
+
+            this.doLayout = function doLayout() {
+                this.bounds = new Bounds({
+                    location : this.location,
+                    dimensions : this.dimensions
+                });
+                this.marginBounds = this.bounds.applySpacing(this.margins);
+                this.paddingBounds = this.marginBounds.applySpacing(this.padding);
+            };
+
+            this.draw = function draw() {
+                if (this.requiresLayout) {
+                    this.layout();
+                }
+            };
+        }
+    });
+
+    /*
+    var Widget = Util.class( { class : "Widget",  extends : Object,
         definition : {
+            __init : function Widget(config) {
+                this.position = config.position || new Point();
+                this.dimensions = config.dimensions || new Dimensions();
+                this.margins = config.margins || new Spacing();
+                this.padding = config.padding || new Spacing();
+                this.background = config.background || null;
+                this.visible = config.visible || true;
+                this.doLayout();
+            },
 
             setPosition : function setPosition(position) { this.position = position; this.requireLayout(); },
             getPosition : function getPosition() { return this.position; },
@@ -133,38 +265,22 @@ Objectify.UI = (function(Util) {
              *
              * @public
              * @returns {boolean}
-             */
+             /
             isVisible : function() { return this.visible; },
 
-            /**
-             * Adds a child to this widget.
-             *
-             * @public
-             * @param {Widget} child
-             */
-            addChild : function addChild(child) {
-                if (this.children.indexOf(child) < 0) {
-                    this.children.push(child);
-                    this.group.add(child.group);
-                    this.requiresLayout = true;
-                }
-            },
-            /**
-             * Removes the specified child from this widget.
-             *
-             * @public
-             * @param {Widget} child
-             */
-            removeChild : function removeChild(child) {
-                var index = this.children.indexOf(child);
-                if (index >= 0) {
-                    this.children.splice(index, 1);
-                    child.group.remove();
-                    this.requiresLayout = true;
+            getGroup : function() { return this.group; },
+
+            requireLayout : function() {
+                this.requiresLayout = this.visible;
+                if (this.requiresLayout) {
+                    this.layout();
                 }
             },
 
-            requireLayout : function() { this.requiresLayout = true; },
+            layout : function layout() {
+                this.doLayout();
+                this.requiresLayout = false;
+            },
 
             doLayout : function doLayout() {
                 this.bounds = new Bounds({
@@ -175,28 +291,64 @@ Objectify.UI = (function(Util) {
                 this.paddingBounds = this.marginBounds.applySpacing(this.padding);
             },
 
-            draw : function draw() {
+            draw : function() {
                 if (this.requiresLayout) {
-                    this.doLayout();
+                    this.layout();
                 }
             }
         }
     });
+*/
 
-    var Window = Util.class( { extends : Object,
-        constructor : function(config) {
+    var WidgetGroup = Util.class( { extends : Widget,
+        definition :  function WidgetGroup(config) {
+            var children = [];
 
-        },
-        definition : {
+            /**
+             * Adds a child to this widget.
+             *
+             * @public
+             * @param {Widget} child
+             */
+            this.addChild = function addChild(child) {
+                if (this.children.indexOf(child) < 0) {
+                    this.children.push(child);
+                    this.group.add(child.group);
+                    this.requireLayout();
+                }
+            }
 
-        }
-    });
+            /**
+             * Removes the specified child from this widget.
+             *
+             * @public
+             * @param {Widget} child
+             */
+            this.removeChild = function removeChild(child) {
+                var index = this.children.indexOf(child);
+                if (index >= 0) {
+                    this.children.splice(index, 1);
+                    child.group.remove();
+                    this.requireLayout();
+                }
+            }
 
-    var Layout = Util.class( { extends : Widget,
-        constructor : function(config) {
+            this.doLayout = function doLayout() {
+                Widget.doLayout.call(this);
 
-        },
-        definition : {
+                var groupAttrs = {
+                    x : this.paddingBounds.x(),
+                    y : this.paddingBounds.y(),
+                    width : this.paddingBounds.getWidth(),
+                    height : this.paddingBounds.getHeight()
+                }
+
+                this.group.setAttrs(groupAttrs);
+
+                for (var child in this.children) {
+                    child.doLayout();
+                }
+            }
 
         }
     });
@@ -208,30 +360,32 @@ Objectify.UI = (function(Util) {
      * @constructor
      */
     var TextWidget = Util.class( { extends : Widget,
-        constructor : function(config) {
-            this.text = config.text;
-            this.textView = null;
-        },
-        definition : {
-            setText : function(text) { this.text = text; this.requireLayout(); },
-            getText : function() { return this.text; },
+        definition : function TextWidget(config) {
 
-            doLayout : function() {
-                Widget.doLayout.call(this); // Super call (calculates bounds)
+            var textView;
+
+            var text = config.text;
+
+            this.setText = function setText(text) { text = text; this.requireLayout(); },
+            this.getText = function getText() { return text; },
+
+            this.doLayout = function doLayout() {
+                console.log("Doing layout");
+                this.super.doLayout.call(this); // Super call (calculates bounds)
 
                 var textViewAttrs = {
-                    text : this.text,
+                    text : text,
                     x : this.paddingBounds.x(),
                     y : this.paddingBounds.y(),
                     width : this.paddingBounds.width(),
                     height : this.paddingBounds.height()
                 };
 
-                if (this.textView) {
-                    this.textView.setAttrs(textViewAttrs);
+                if (textView) {
+                    textView.setAttrs(textViewAttrs);
                 } else {
-                    this.textView = new Kinetic.Text(textViewAttrs);
-                    this.group.addChild(this.textView);
+                    textView = new Kinetic.Text(textViewAttrs);
+                    this.group.addChild(textView);
                 }
 
             }
@@ -243,7 +397,9 @@ Objectify.UI = (function(Util) {
         Dimensions : Dimensions,
         Spacing : Spacing,
         Widget : Widget,
-        TextWidget : TextWidget
+        TextWidget : TextWidget,
+        WidgetGroup : WidgetGroup,
+        Window : Window
     }
 
 

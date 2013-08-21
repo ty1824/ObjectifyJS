@@ -15,10 +15,10 @@ var Objectify = (function(Kinetic) {
      * @param config
      * @constructor
      */
-    Objectify.Entity = function(config) {
+    var Entity = function(config) {
         this.__init(config);
     };
-    Objectify.Entity.prototype = {
+    Entity.prototype = {
         __init : function(config) {
 
         }
@@ -30,15 +30,15 @@ var Objectify = (function(Kinetic) {
      * @param config
      * @constructor
      */
-    Objectify.Relationship = function(config) {
+    var Relationship = function(config) {
         this.__init(config);
     };
-    Objectify.Relationship.prototype = {
+    Relationship.prototype = {
         __init : function(config) {
             Objectify.Entity.call(this, config);
         }
     };
-    Objectify.Util.extend(Objectify.Relationship, Objectify.Entity);
+    //extend(Objectify.Relationship, Objectify.Entity);
 
     /**
      * Object
@@ -46,14 +46,19 @@ var Objectify = (function(Kinetic) {
      * @param config
      * @constructor
      */
-    Objectify.Object = function(config) {
+    var Obj = function(config) {
         this.__init(config);
     };
-    Objectify.Object.prototype = {
+    Obj.prototype = {
         __init : function(config) {
             Objectify.Entity.call(this, config);
         }
     };
-    Objectify.Util.extend(Objectify.Object, Objectify.Entity);
+    //Objectify.Util.extend(Objectify.Object, Objectify.Entity);
 
+    return {
+        Entity : Entity,
+        Relationship : Relationship,
+        Obj : Obj
+    }
 } (Kinetic));
